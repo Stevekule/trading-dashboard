@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>统一交易看板 — {{DATE_TITLE}}</title>
+<style>
+/* ============================================================
+   Trading Dashboard Design System — Dark Theme
+   ============================================================ */
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:"Microsoft YaHei","PingFang SC",-apple-system,sans-serif;background:#1a1d23;color:#d0d4dc;line-height:1.55;padding:16px}
+.board{max-width:1100px;margin:0 auto}
+
+/* Panel */
+.panel{background:#22252e;border:1px solid #333842;border-radius:10px;padding:16px 18px;margin-bottom:14px}
+
+/* Typography */
+h1{font-size:19px;color:#f0f2f5;margin-bottom:3px}
+h2{font-size:15px;color:#9aa0b0;border-bottom:1px solid #333842;padding-bottom:7px;margin-bottom:12px;letter-spacing:.5px}
+h3{font-size:14px;color:#b8bfce;margin:14px 0 8px}
+
+/* Header panel — special gradient */
+.header-panel{background:linear-gradient(135deg,#1e2440,#2a3050);border-color:#3a4068;padding:20px 22px}
+.header-panel .date{font-size:12px;color:#6b7290;margin-bottom:6px}
+.header-panel .mkt-stats{display:flex;gap:16px;flex-wrap:wrap;margin-top:8px;font-size:13px}
+.header-panel .mkt-stats span{background:rgba(255,255,255,.06);padding:4px 10px;border-radius:6px}
+
+/* Color system */
+.up{color:#ec4e4e}          /* 涨-红 (Chinese convention) */
+.down{color:#3ec97e}        /* 跌-绿 */
+.neutral{color:#e8a830}     /* 中性-黄 */
+
+/* ============================================================
+   TOP WATCHLIST GRID — Most important component
+   ============================================================ */
+.watch-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
+@media(max-width:900px){.watch-grid{grid-template-columns:repeat(2,1fr)}}
+@media(max-width:500px){.watch-grid{grid-template-columns:1fr}}
+.watch-card{background:#2a2e38;border-radius:8px;padding:10px 12px;border-left:3px solid #444;position:relative}
+.watch-card.priority-1{border-left-color:#ec4e4e}
+.watch-card.priority-2{border-left-color:#e8a830}
+.watch-card.priority-3{border-left-color:#5aa8f0}
+.watch-card.priority-4{border-left-color:#6b7180}
+.watch-card .wc-code{font-size:10px;color:#6b7180;margin-bottom:2px}
+.watch-card .wc-name{font-size:13px;font-weight:700;color:#e0e4ec}
+.watch-card .wc-price{font-size:17px;font-weight:700;margin:3px 0}
+.watch-card .wc-change{font-size:12px}
+.watch-card .wc-signal{font-size:11px;color:#9aa0b0;margin-top:4px;line-height:1.3}
+.watch-card .wc-badge{position:absolute;top:8px;right:10px;font-size:10px;padding:2px 7px;border-radius:4px;font-weight:700}
+.badge-hold{background:#2a3a20;color:#3ec97e}
+.badge-buy{background:#3a2020;color:#ec4e4e}
+.badge-watch{background:#2a2a30;color:#9aa0b0}
+.badge-dont{background:#3a1a1a;color:#ec6b6b}
+
+/* ============================================================
+   Tables
+   ============================================================ */
+table{width:100%;border-collapse:collapse;font-size:13px}
+th{background:#2a2e38;text-align:left;padding:7px 9px;font-weight:600;color:#9aa0b0;border-bottom:2px solid #333842}
+td{padding:7px 9px;border-bottom:1px solid #2a2e38;vertical-align:top}
+tr:hover td{background:#272b35}
+.code{font-size:11px;color:#6b7180}
+
+/* ============================================================
+   Price Tags — 4 variants
+   ============================================================ */
+.price{display:inline-block;font-family:"Consolas","Courier New",monospace;padding:1px 7px;border-radius:4px;font-weight:700;font-size:12px;margin:0 2px}
+.price-trigger{background:#3a1f1f;color:#ec4e4e;border:1px solid #5a2a2a}
+.price-support{background:#1f2e1f;color:#3ec97e;border:1px solid #2a4a2a}
+.price-neutral{background:#2a2e38;color:#e8a830;border:1px solid #3a3520}
+.price-target{background:#1f2a3a;color:#5aa8f0;border:1px solid #2a3a5a}
+
+/* ============================================================
+   Alert Boxes — 4 variants
+   ============================================================ */
+.alert-r{background:#2a1a1a;border-left:3px solid #ec4e4e;padding:9px 13px;border-radius:6px;margin:8px 0;font-size:12px;color:#e8c0c0}
+.alert-g{background:#1a2a1a;border-left:3px solid #3ec97e;padding:9px 13px;border-radius:6px;margin:8px 0;font-size:12px;color:#c0e8c0}
+.alert-y{background:#2a2818;border-left:3px solid #e8a830;padding:9px 13px;border-radius:6px;margin:8px 0;font-size:12px;color:#e8d8a0}
+.alert-b{background:#1a2030;border-left:3px solid #5aa8f0;padding:9px 13px;border-radius:6px;margin:8px 0;font-size:12px;color:#b0c8e8}
+
+/* ============================================================
+   Flow timeline
+   ============================================================ */
+.flow{display:flex;gap:10px;flex-wrap:wrap}
+.flow-item{flex:1;min-width:130px;background:#2a2e38;border-radius:8px;padding:10px;text-align:center;font-size:12px}
+.flow-item .fi-time{font-size:14px;font-weight:700;color:#e8a830;margin-bottom:3px}
+.flow-item .fi-action{font-weight:600;margin:3px 0;font-size:13px}
+.flow-item .fi-note{font-size:10px;color:#6b7180}
+
+/* ============================================================
+   KPI row
+   ============================================================ */
+.kpi-row{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:10px}
+.kpi{background:#2a2e38;border-radius:8px;padding:9px 12px;text-align:center;flex:1;min-width:80px}
+.kpi .v{font-size:17px;font-weight:700}
+.kpi .lbl{font-size:10px;color:#6b7180;margin-top:2px}
+
+/* ============================================================
+   Signal tags
+   ============================================================ */
+.signal-tag{display:inline-block;font-size:10px;padding:2px 6px;border-radius:3px;font-weight:700;margin-right:3px}
+.sig-green{background:#1a3a1a;color:#3ec97e}
+.sig-yellow{background:#3a3018;color:#e8a830}
+.sig-red{background:#3a1a1a;color:#ec6b6b}
+.sig-blue{background:#1a2a3a;color:#5aa8f0}
+
+/* ============================================================
+   Misc
+   ============================================================ */
+.highlight{background:rgba(232,168,48,.15);border-radius:3px;padding:1px 5px;font-weight:600;color:#e8c870}
+.footer{text-align:center;color:#4a5060;font-size:10px;margin-top:18px;padding-top:10px;border-top:1px solid #2a2e38}
+</style>
+</head>
+<body>
+<div class="board">
+
+<!-- ====== HEADER ====== -->
+<div class="panel header-panel">
+  <h1>📋 统一交易看板 — {{DATE_TITLE}}</h1>
+  <div class="date">基于 {{DATA_DATE}} 收盘数据 | 数据来源：腾讯自选股 NeoData | ⚠️ 不构成投资建议，仅为方法论演算</div>
+  <div class="mkt-stats">
+    {{MARKET_STATS}}
+  </div>
+</div>
+
+<!-- ====== 顶部盯盘清单 ====== -->
+<div class="panel">
+  <h2>🔭 明天盯盘清单 — 所有标的速览（名称+代码）</h2>
+  <div class="watch-grid">
+    {{WATCHLIST_CARDS}}
+  </div>
+</div>
+
+<!-- ====== 持仓状态 ====== -->
+<div class="panel">
+  <h2>💼 当前持仓</h2>
+  {{HOLDINGS_SECTION}}
+</div>
+
+<!-- ====== 市场脉搏 (M1市场广度 + M2/M3行业温度) ====== -->
+{{MARKET_PULSE_PANELS}}
+
+<!-- ====== 板块进场计划 ====== -->
+{{SECTOR_SECTIONS}}
+
+<!-- ====== 全量关键价位汇总 ====== -->
+<div class="panel">
+  <h2>📊 全量关键价位汇总表（一表覆盖所有标的）</h2>
+  {{SUMMARY_TABLE}}
+</div>
+
+<!-- ====== 开盘决策流程 ====== -->
+<div class="panel">
+  <h2>🔄 明天开盘决策流程（按时间线）</h2>
+  <div class="flow">
+    {{DECISION_FLOW}}
+  </div>
+</div>
+
+<!-- ====== 核心观察指标 ====== -->
+<div class="panel">
+  <h2>📡 全天盯盘核心观察指标</h2>
+  {{OBSERVATION_INDICATORS}}
+</div>
+
+<!-- ====== 仓位汇总 ====== -->
+<div class="panel">
+  <h2>💰 仓位分配（总仓≤上限）</h2>
+  {{POSITION_ALLOCATION}}
+</div>
+
+<!-- ====== 严禁事项 ====== -->
+<div class="panel">
+  <h2>🚫 明天绝不做的N件事</h2>
+  {{DONT_DO_LIST}}
+</div>
+
+<!-- ====== 一句话 ====== -->
+<div class="panel" style="text-align:center;background:#262a35;border-color:#333842;">
+  <div style="font-size:15px;color:#9aa0b0;">
+    {{CORE_MESSAGE}}
+  </div>
+</div>
+
+<div class="footer">
+  ⚠️ 本文仅作方法论演算，不构成投资建议。股市有风险，投资需谨慎。 | 数据来源：腾讯自选股 NeoData | 生成时间：{{GENERATION_TIME}} CST
+</div>
+
+</div>
+</body>
+</html>
